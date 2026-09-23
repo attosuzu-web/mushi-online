@@ -37,7 +37,7 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
 .actions-box{display:flex;flex-direction:column}.actions{margin-top:5px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.actions button{border:1px solid #9ca7b1;background:#fff;border-radius:6px;padding:7px 3px;font-size:12px}.actions .turn-button{background:#fff8df;border-color:#d4ad48}.primary:disabled,.secondary:disabled{background:#d7dbe0!important;color:#8a9096!important;border-color:#b9bec4!important;cursor:not-allowed}.discard-list{width:100%;height:100%;overflow-y:auto;display:flex;flex-direction:column;align-items:center;gap:3px;padding:1px}.discard-item{width:100%;min-height:25px;border:1px solid #888;border-radius:4px;background:#fff;padding:3px 4px;font-size:9px;line-height:1.1;word-break:break-word;cursor:pointer}.discard-item.selected{outline:2px solid #f09a24}.discard-item.back{background:#777;color:transparent}.discard-item.mode-knownBack{background:#777;color:#fff}
 .selected-info{margin-top:6px;background:#f7f8f9;border:1px solid #d5dbe0;border-radius:6px;padding:6px;font-size:11px;display:flex;align-items:center;gap:5px;min-height:30px}
 .wait{font-size:11px;color:#805d00;background:#fff8e6;border:1px solid #e2c878;border-radius:5px;padding:4px 6px;margin-top:5px}
-.modal{position:fixed;inset:0;background:#0007;display:flex;align-items:center;justify-content:center;padding:15px;z-index:20}.modal-box{background:#fff;border-radius:9px;padding:15px;max-width:720px;width:90%;max-height:85vh;display:flex;flex-direction:column}
+.modal{position:fixed;inset:0;background:#0007;display:flex;align-items:center;justify-content:center;padding:15px;z-index:20}.modal-box{background:#fff;border-radius:99px;padding:15px;max-width:720px;width:90%;max-height:85vh;display:flex;flex-direction:column}
 .modal-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:7px;overflow:auto;padding:5px}.modal-card{border:1px solid #888;border-radius:6px;background:#fff;padding:8px;min-height:72px;text-align:left;font-size:12px}.modal-card.back{background:#777;color:#fff}.modal-card.known-back{background:#777;color:#fff}.modal-actions{text-align:right;margin-top:8px}
 @media(max-width:1050px){#game{grid-template-columns:minmax(0,1fr) 350px}.player-board{grid-template-columns:58px 58px minmax(0,1fr)}.card{width:40px;height:62px}}
 </style>
@@ -107,6 +107,30 @@ $("deck").oninput = () => $("deckCount").textContent = deckInput().length + " / 
 
 function roomRef() { return ref(db, roomPath); }
 
+function toArray(val){
+  if(!val) return [];
+  if(Array.isArray(val)) return val;
+  if(typeof val === "object") return Object.values(val);
+  return [];
+}
+
+function normalizeState(s){
+  if(!s) return null;
+  s.players = toArray(s.players);
+  s.history = toArray(s.history);
+  s.chat = toArray(s.chat);
+  s.undoStack = toArray(s.undoStack);
+  
+  s.players.forEach(p => {
+    if(p.areas){
+      areas.forEach(a => {
+        p.areas[a] = toArray(p.areas[a]);
+      });
+    }
+  });
+  return s;
+}
+
 function save() {
   if(!roomPath || !state) return;
   state.updatedAt = Date.now();
@@ -153,6 +177,7 @@ function startGame(){
   state.history = [];
   state.history.push({ t: Date.now(), type: "start", first: state.first, text: "対戦を開始しました" });
   selected = null;
+  normalizeState(state);
   save();
 }
 
@@ -192,9 +217,11 @@ function drawZone(owner, area){
     z.appendChild(cs); return z;
   }
 
+  let listArr = p.areas[area] || [];
+
   if(area === "discard"){
     let list = document.createElement("div"); list.className = "discard-list";
-    p.areas.discard.forEach((c, i) => {
+    listArr.forEach((c, i) => {
       let b = document.createElement("button"), mode = c.faceUp ? "normal" : (c.knownName ? "knownBack" : "back");
       b.className = "discard-item mode-" + mode + " " + (mode === "back" ? "back " : "") + (mode === "knownBack" ? "known-back " : "") + (selected && selected.owner === owner && selected.area === area && selected.index === i ? "selected" : "");
       b.textContent = (mode === "normal" || mode === "knownBack") ? c.name : "";
@@ -203,10 +230,10 @@ function drawZone(owner, area){
       else b.disabled = true;
       list.appendChild(b);
     });
-    if(!p.areas.discard.length){ let e = document.createElement("span"); e.className = "empty"; e.textContent = "空"; list.appendChild(e); }
+    if(!listArr.length){ let e = document.createElement("span"); e.className = "empty"; e.textContent = "空"; list.appendChild(e); }
     cs.appendChild(list);
   } else if(area === "deck"){
-    if(p.areas.deck.length){
+    if(listArr.length){
       let wrap = document.createElement("div"); wrap.className = "deck-controls";
       let x = document.createElement("button");
       x.className = "card deck-card back " + (selected && selected.owner === owner && selected.area === "deck" && selected.index === 0 ? "selected" : "");
@@ -221,15 +248,15 @@ function drawZone(owner, area){
       cs.appendChild(wrap);
     } else { let e = document.createElement("span"); e.className = "empty"; e.textContent = "空"; cs.appendChild(e); }
   } else if(area === "territory"){
-    p.areas[area].forEach((c, i) => cs.appendChild(makeCard(c, owner, area, i)));
-    if(!p.areas[area].length){ let e = document.createElement("span"); e.className = "empty"; e.textContent = "空"; cs.appendChild(e); }
-    if(owner === meId && p.areas.territory.length){
+    listArr.forEach((c, i) => cs.appendChild(makeCard(c, owner, area, i)));
+    if(!listArr.length){ let e = document.createElement("span"); e.className = "empty"; e.textContent = "空"; cs.appendChild(e); }
+    if(owner === meId && listArr.length){
       let draw = document.createElement("button"); draw.className = "zone-action"; draw.textContent = "縄張りを引く"; draw.onclick = () => drawTerritory();
       cs.appendChild(draw);
     }
   } else {
-    p.areas[area].forEach((c, i) => cs.appendChild(makeCard(c, owner, area, i)));
-    if(!p.areas[area].length){ let e = document.createElement("span"); e.className = "empty"; e.textContent = "空"; cs.appendChild(e); }
+    listArr.forEach((c, i) => cs.appendChild(makeCard(c, owner, area, i)));
+    if(!listArr.length){ let e = document.createElement("span"); e.className = "empty"; e.textContent = "空"; cs.appendChild(e); }
   }
   z.appendChild(cs);
   if(owner === meId){
@@ -253,6 +280,8 @@ function historyCardText(card, to){ return ["field","food","discard"].includes(t
 
 function render(){
   if(!state) return;
+  normalizeState(state);
+  
   $("room").textContent = roomNo;
   $("players").innerHTML = state.players.map(p => `<span class="badge ${p.id === meId ? "me" : ""}">${p.id === meId ? "あなた" : "相手"}</span>`).join("");
   let fp = state.players.find(p => p.slot === state.first);
@@ -422,7 +451,7 @@ $("enter").onclick = async () => {
 
     if(!result.committed){ return alert("この部屋は満員か、入室に失敗しました。"); }
 
-    state = result.snapshot.val();
+    state = normalizeState(result.snapshot.val());
     let me = state.players.find(p => p.id === meId);
     if(!me) return alert("入室情報の取得に失敗しました。");
     meSlot = me.slot;
@@ -438,7 +467,7 @@ $("enter").onclick = async () => {
         location.reload();
         return;
       }
-      state = data;
+      state = normalizeState(data);
       render();
     });
 
