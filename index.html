@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>蟲神器 オンライン対戦盤v2</title>
+<title>蟲神器 オンライン対戦盤v3</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}
 body{background:#eef1f4;color:#222;font-family:system-ui,-apple-system,"Yu Gothic",Meiryo,sans-serif}
@@ -102,7 +102,12 @@ let roomNo="", roomPath="", meId="", meSlot="", state=null, selected=null, undoS
 const $=id=>document.getElementById(id);
 const uid=()=>Math.random().toString(36).slice(2,10);
 function deckInput(){return $("deck").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean)}
-$("deck").oninput=()=> $("deckCount").textContent=deckInput().length+" / 20 枚";
+
+function updateDeckCount(){
+  $("deckCount").textContent = deckInput().length + " / 20 枚";
+}
+$("deck").addEventListener("input", updateDeckCount);
+$("deck").addEventListener("propertychange", updateDeckCount);
 
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function makeAreas(deck){let c=shuffle(deck).map(n=>({id:uid(),name:n,faceUp:true}));return{hand:c.slice(0,4),territory:c.slice(4,10),deck:c.slice(10),field:[],food:[],discard:[]}}
