@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>蟲神器 オンライン対戦盤</title>
+<title>蟲神器 オンライン対戦盤v2</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}
 body{background:#eef1f4;color:#222;font-family:system-ui,-apple-system,"Yu Gothic",Meiryo,sans-serif}
@@ -333,25 +333,32 @@ $("enter").onclick=async()=>{
   meId=auth.currentUser.uid;
 
   const rr=roomRef();
-  const result=await runTransaction(rr, current=>{
-    if(!current){
-      return {
-        room:roomNo,
-        players:[{id:meId, slot:"p1", deck:d, areas:null}],
-        started:false, history:[], chat:[], updatedAt:Date.now(), firstChoice:"random", first:null
-      };
-    }
-    let r=current;
-    if(!r.players)r.players=[];
-    let existing=r.players.find(p=>p.id===meId);
-    if(existing)return r;
-    if(r.players.length>=2)return; // 満員
-    r.players.push({id:meId, slot:"p2", deck:d, areas:null});
-    r.updatedAt=Date.now();
-    return r;
-  });
+  let result;
+  try{
+    result=await runTransaction(rr, current=>{
+      if(!current){
+        return {
+          room:roomNo,
+          players:[{id:meId, slot:"p1", deck:d, areas:null}],
+          started:false, history:[], chat:[], updatedAt:Date.now(), firstChoice:"random", first:null
+        };
+      }
+      let r=JSON.parse(JSON.stringify(current));
+      if(!r.players)r.players=[];
+      let existing=r.players.find(p=>p.id===meId);
+      if(existing)return r;
+      if(r.players.length>=2)return; // 満員の場合は中断
+      r.players.push({id:meId, slot:"p2", deck:d, areas:null});
+      r.updatedAt=Date.now();
+      return r;
+    });
+  }catch(e){
+    console.error(e);
+    $("lobbyError").textContent="入室処理中にエラーが発生しました。";
+    return;
+  }
 
-  if(!result.committed){
+  if(!result.committed || !result.snapshot.exists()){
     $("lobbyError").textContent="部屋が満員か、入室に失敗しました。";
     return;
   }
