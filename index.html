@@ -3,17 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>蟲神器 オンライン対戦盤</title>
+<title>蟲神器 簡易対戦ツール</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:x-hidden}
 body{background:#eef1f4;color:#222;font-family:system-ui,-apple-system,"Yu Gothic",Meiryo,sans-serif}
 button,input,textarea,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}
 .wrap{max-width:1200px;margin:auto;padding:20px}.panel{background:#fff;border:1px solid #ccd2d8;border-radius:10px;padding:16px;margin-bottom:14px}
-h1{font-size:25px;margin:0 0 8px}h2{font-size:19px;margin:0 0 12px}.note{font-size:13px;color:#666;line-height:1.5}
+h1{font-size:25px;margin:0 0 8px}h2{font-size:18px;margin:16px 0 8px;border-bottom:1px solid #eee;padding-bottom:4px}
+.panel > h2:first-child{margin-top:0}
+.note{font-size:13px;color:#444;line-height:1.6}
+ul.note{padding-left:20px;margin:6px 0}ul.note li{margin-bottom:4px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}input[type=text],select{padding:9px;border:1px solid #aeb7c0;border-radius:6px;min-width:180px}
 textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-radius:6px;resize:vertical}
 .primary{background:#2463eb;color:#fff;border:0;border-radius:7px;padding:9px 16px}.secondary{background:#fff;border:1px solid #9ca7b1;border-radius:7px;padding:8px 14px}.danger{background:#fff;border:1px solid #c55;color:#a00;border-radius:7px;padding:8px 14px}
-.row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.count{font-size:13px;color:#555}
+.row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.count{font-size:13px;color:#555;margin-top:4px}
 #game{height:100vh;max-width:none;padding:8px;display:grid;grid-template-columns:minmax(0,1fr) 410px;gap:8px;overflow:hidden}
 .board{min-width:0;min-height:0;display:grid;grid-template-rows:1fr 1fr;gap:6px}
 .player-board{min-height:0;background:#fff;border:1px solid #c7ced5;border-radius:8px;padding:5px;display:grid;grid-template-columns:74px 74px minmax(0,1fr);grid-template-rows:1fr 1fr 1fr 1fr;gap:4px;position:relative;overflow:hidden}
@@ -37,22 +40,71 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
 .actions-box{display:flex;flex-direction:column}.actions{margin-top:5px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.actions button{border:1px solid #9ca7b1;background:#fff;border-radius:6px;padding:7px 3px;font-size:12px}.actions .turn-button{background:#fff8df;border-color:#d4ad48}.primary:disabled,.secondary:disabled{background:#d7dbe0!important;color:#8a9096!important;border-color:#b9bec4!important;cursor:not-allowed}.discard-list{width:100%;height:100%;overflow-y:auto;display:flex;flex-direction:column;align-items:center;gap:3px;padding:1px}.discard-item{width:100%;min-height:25px;border:1px solid #888;border-radius:4px;background:#fff;padding:3px 4px;font-size:9px;line-height:1.1;word-break:break-word;cursor:pointer}.discard-item.selected{outline:2px solid #f09a24}.discard-item.back{background:#777;color:transparent}.discard-item.mode-knownBack{background:#777;color:#fff}
 .selected-info{margin-top:6px;background:#f7f8f9;border:1px solid #d5dbe0;border-radius:6px;padding:6px;font-size:11px;display:flex;align-items:center;gap:5px;min-height:30px}
 .wait{font-size:11px;color:#805d00;background:#fff8e6;border:1px solid #e2c878;border-radius:5px;padding:4px 6px;margin-top:5px}
-.modal{position:fixed;inset:0;background:#0007;display:flex;align-items:center;justify-content:center;padding:15px;z-index:20}.modal-box{background:#fff;border-radius:99px;padding:15px;max-width:720px;width:90%;max-height:85vh;display:flex;flex-direction:column}
+.modal{position:fixed;inset:0;background:#0007;display:flex;align-items:center;justify-content:center;padding:15px;z-index:20}.modal-box{background:#fff;border-radius:8px;padding:15px;max-width:720px;width:90%;max-height:85vh;display:flex;flex-direction:column}
 .modal-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:7px;overflow:auto;padding:5px}.modal-card{border:1px solid #888;border-radius:6px;background:#fff;padding:8px;min-height:72px;text-align:left;font-size:12px}.modal-card.back{background:#777;color:#fff}.modal-card.known-back{background:#777;color:#fff}.modal-actions{text-align:right;margin-top:8px}
 @media(max-width:1050px){#game{grid-template-columns:minmax(0,1fr) 350px}.player-board{grid-template-columns:58px 58px minmax(0,1fr)}.card{width:40px;height:62px}}
 </style>
 </head>
 <body>
 <div id="lobby" class="wrap">
-<h1>蟲神器 オンライン対戦盤</h1>
-<p class="note">オンライン対戦版です。Firebase Realtime Databaseを使用して複数PC・ブラウザ間でリアルタイム同期します。</p>
+<h1>蟲神器 簡易対戦ツール</h1>
+<p class="note">PC同士でリアルタイム同期し、疑似的なオンライン対戦が出来ます。</p>
+
 <div class="grid2">
-<div class="panel"><h2>部屋</h2><p>部屋番号<br><input id="roomNo" type="text" maxlength="20" placeholder="例：1234"></p>
-<p class="note">存在しない番号なら作成、存在する番号なら入室します。デッキは入室時に登録します。先攻・後攻は2人そろった後に決定します。</p>
-<button id="enter" class="primary">部屋を作る / 入る</button></div>
-<div class="panel"><h2>自分のデッキ（20枚）</h2><textarea id="deck" placeholder="1行につき1枚。カード名だけでもOKです。"></textarea><div id="deckCount" class="count">0 / 20 枚</div></div>
+<div class="panel">
+<h2>部屋</h2>
+<p class="note">部屋番号<br><input id="roomNo" type="text" maxlength="20" placeholder="例：1234"></p>
+<p class="note">存在しない番号なら部屋を作成し、存在する番号なら入室します。<br>部屋を作成した側が先攻設定や対戦開始を操作できます。</p>
+<button id="enter" class="primary">部屋を作る / 入る</button>
 </div>
-<div class="panel"><h2>実装済みの機能</h2><ul class="note"><li>20枚登録 → シャッフル → 手札4・縄張り6・山札10</li><li>手札 / 山札 / 場 / エサ場 / 縄張り / 捨て札</li><li>カード選択 → 移動、表裏変更</li><li>一手戻す、操作履歴、チャット</li><li>再戦、部屋終了</li><li>先攻：2人入室後、プレイヤー1が設定（画面上は「あなた / 相手」と表示）</li></ul></div>
+<div class="panel">
+<h2>自分のデッキ（20枚）</h2>
+<textarea id="deck" placeholder="1行につき1枚。カード名を入力してください。"></textarea>
+<div id="deckCount" class="count">0 / 20 枚</div>
+</div>
+</div>
+
+<div class="panel">
+<h2>■ このツールについて</h2>
+<ul class="note">
+<li>本ツールは、トレーディングカードゲーム「蟲神器」をブラウザ上でオンライン対戦（リモート対戦）するための非公式盤面ツールです。<br>アプリのインストールは不要で、部屋番号を共有するだけでPCのブラウザ同士でリアルタイムに対戦できます。</li>
+<li>PC推奨、スマホは未対応なので入室できないかレイアウトが崩れたりします。</li>
+</ul>
+
+<h2>■ 主な機能</h2>
+<ul class="note">
+<li><b>デッキ自動セットアップ:</b> 20枚のデッキリストを入力するだけで、シャッフル・手札(4枚)・縄張り(6枚)・山札(10枚)を自動配置</li>
+<li><b>カードの直感操作:</b> 各エリア（手札・場・エサ場・縄張り・捨て札・山札）への移動、表裏の切り替え</li>
+<li><b>リアルタイム同期:</b> 相手のカード操作や盤面の状態がリアルタイムに反映</li>
+<li><b>対戦サポート:</b> 操作履歴の表示、「一手戻す(Undo)」機能、対戦中チャット</li>
+<li><b>スムーズな再戦:</b> 同じデッキのままワンクリックで盤面をリセットして再戦可能</li>
+</ul>
+
+<h2>■ 使い方</h2>
+<ul class="note">
+<li>カードを選択して移動先のエリアをクリックするとカードが移動します。</li>
+<li>もしくは右側にある操作ボタンをクリックすることでも操作可能です。</li>
+<li>ドローと縄張りを引く操作に関しては別途ボタンが用意されています。</li>
+<li>選択できるのは自分のカードのみです。</li>
+</ul>
+
+<h2>■ 注意事項・プレイングのルール</h2>
+<ul class="note">
+<li><b>【ルール判定はありません】</b> 効果の発動、ダメージ計算、勝敗の判定などは自動処理されません。実際のカード対戦と同様に、お互いに確認・対話しながらプレイを進めてください。</li>
+<li><b>【デッキ入力】</b> リストなどはありません。1行につきカード1枚（合計20行）で登録してください。入力したテキストがそのままカード名として表示されます。（お互いがカードを一意に認識できればいいので省略も可。「ゴライアス5/800/500」のようにコスト等を記載しても構いません。ただし長すぎると表示が崩れるので注意）</li>
+<li><b>【ページ更新の注意】</b> 対戦中にページの再読み込み（F5キー等）を行うと、部屋から離脱してしまう場合がありますのでご注意ください。</li>
+<li><b>【非公式ツール】</b> 本ツールはファンが作成した非公式ツールです。公式とは一切関係ありません。</li>
+</ul>
+
+<h2>■ その他</h2>
+<ul class="note">
+<li>お互いがほぼ同時に操作をするとバグるかも？未確認ですが一応注意。</li>
+<li>＜とびだす＞などの判定も出来ないので、一度手札に加えてから盤面に出すなどの処理となります。元々手札にあったカードを偽って出すなども可能ですが、信頼の上でのプレイを前提としてください。</li>
+<li>その他不正対策なども実装されていません。</li>
+<li>「エメラルドゴキブリバチ」のような特殊なカードの動きは対応できていません。</li>
+<li>バグ報告などは作者（<a href="https://x.com/AttoSuzu" target="_blank" rel="noopener">https://x.com/AttoSuzu</a>）に連絡ください。</li>
+</ul>
+</div>
 </div>
 
 <div id="game" class="wrap hidden">
