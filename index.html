@@ -48,13 +48,13 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
 <body>
 <div id="lobby" class="wrap">
 <h1>蟲神器 簡易対戦ツール</h1>
-<p class="note">PC同士でリアルタイム同期し、疑似的なオンライン対戦が出来ます。</p>
+<p class="note">PC同士でリアルタイム同期し、疑似的なオンライン対戦が出来ます。あくまで実物のカードをお持ちのプレイヤー同士がリモート環境なしで対戦するための「補助ツール」となっています。</p>
 
 <div class="grid2">
 <div class="panel">
 <h2>部屋</h2>
 <p class="note">部屋番号<br><input id="roomNo" type="text" maxlength="20" placeholder="例：1234"></p>
-<p class="note">存在しない番号なら部屋を作成し、存在する番号なら入室します。<br>部屋を作成した側が先攻設定や対戦開始を操作できます。</p>
+<p class="note">存在しない番号なら部屋を作成し、存在する番号なら入室します。<br>部屋を作成した側が先攻設定や対戦開始を操作できます。<br>（システム上、ターンの概念はないので履歴表示用です）</p>
 <button id="enter" class="primary">部屋を作る / 入る</button>
 </div>
 <div class="panel">
@@ -76,14 +76,13 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
 <li><b>デッキ自動セットアップ:</b> 20枚のデッキリストを入力するだけで、シャッフル・手札(4枚)・縄張り(6枚)・山札(10枚)を自動配置</li>
 <li><b>カードの直感操作:</b> 各エリア（手札・場・エサ場・縄張り・捨て札・山札）への移動、表裏の切り替え</li>
 <li><b>リアルタイム同期:</b> 相手のカード操作や盤面の状態がリアルタイムに反映</li>
-<li><b>対戦サポート:</b> 操作履歴の表示、「一手戻す(Undo)」機能、対戦中チャット</li>
+<li><b>対戦サポート:</b> 操作履歴の表示、「一手戻す」機能、対戦中チャット</li>
 <li><b>スムーズな再戦:</b> 同じデッキのままワンクリックで盤面をリセットして再戦可能</li>
 </ul>
 
 <h2>■ 使い方</h2>
 <ul class="note">
-<li>カードを選択して移動先のエリアをクリックするとカードが移動します。</li>
-<li>もしくは右側にある操作ボタンをクリックすることでも操作可能です。</li>
+<li>カードを選択して移動先のエリアをクリックするとカードが移動します。右側にある操作ボタンをクリックすることでも操作できます。</li>
 <li>ドローと縄張りを引く操作に関しては別途ボタンが用意されています。</li>
 <li>選択できるのは自分のカードのみです。</li>
 </ul>
@@ -91,18 +90,19 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
 <h2>■ 注意事項・プレイングのルール</h2>
 <ul class="note">
 <li><b>【ルール判定はありません】</b> 効果の発動、ダメージ計算、勝敗の判定などは自動処理されません。実際のカード対戦と同様に、お互いに確認・対話しながらプレイを進めてください。</li>
-<li><b>【デッキ入力】</b> リストなどはありません。1行につきカード1枚（合計20行）で登録してください。入力したテキストがそのままカード名として表示されます。（お互いがカードを一意に認識できればいいので省略も可。「ゴライアス5/800/500」のようにコスト等を記載しても構いません。ただし長すぎると表示が崩れるので注意）</li>
+<li><b>【デッキ入力】</b> カードリストなどはありません。入力したテキストがそのままカード名として表示されます。（お互いがカードを一意に認識できればいいので省略も可。「ゴライアス5/800/500」のような記載もOKです。ただし長すぎると表示が崩れるので注意）</li>
 <li><b>【ページ更新の注意】</b> 対戦中にページの再読み込み（F5キー等）を行うと、部屋から離脱してしまう場合がありますのでご注意ください。</li>
 <li><b>【非公式ツール】</b> 本ツールはファンが作成した非公式ツールです。公式とは一切関係ありません。</li>
 </ul>
 
 <h2>■ その他</h2>
 <ul class="note">
-<li>お互いがほぼ同時に操作をするとバグるかも？未確認ですが一応注意。</li>
+<li>お互いがほぼ同時に一手戻す操作をするとバグるかも？未確認ですが一応注意。</li>
 <li>＜とびだす＞などの判定も出来ないので、一度手札に加えてから盤面に出すなどの処理となります。元々手札にあったカードを偽って出すなども可能ですが、信頼の上でのプレイを前提としてください。</li>
 <li>その他不正対策なども実装されていません。</li>
-<li>「エメラルドゴキブリバチ」のような特殊なカードの動きは対応できていません。</li>
-<li>バグ報告などは作者（<a href="https://x.com/AttoSuzu" target="_blank" rel="noopener">https://x.com/AttoSuzu</a>）に連絡ください。</li>
+<li>「エメラルドゴキブリバチ」の"操り針"ような特殊な動き全てには対応できていないので、アドリブで対応してください。</li>
+<li>異なるブラウザを使用すれば同一PCでの一人回しも可能です。</li>  
+<li>バグ報告やご意見は作者（<a href="https://x.com/AttoSuzu" target="_blank" rel="noopener">https://x.com/AttoSuzu</a>）に連絡ください。</li>
 </ul>
 </div>
 </div>
@@ -118,7 +118,7 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
 </div>
 <div class="side-box actions-box"><b>操作</b><div class="actions">
 <button data-to="food">エサ場へ</button><button data-to="field">場へ</button><button data-to="discard">捨て札へ</button><span></span>
-<button data-to="hand">手札へ</button><button data-to="deck">山札の一番下へ</button><button id="down">裏向き</button><button id="up">表向き</button>
+<button data-to="hand">手札へ</button><button data-to="deck">山札の下へ</button><button id="down">裏向き</button><button id="up">表向き</button>
 <button id="turnEnd">ターン終了</button><button id="undo">一手戻す</button><span></span><span></span>
 </div><div class="selected-info"><b>選択：</b><span id="selectedText">なし</span></div><div class="row" style="margin-top:5px"><button id="rematch" class="secondary">再戦</button><button id="end" class="danger">終了</button></div></div>
 </aside>
@@ -385,7 +385,7 @@ function move(to){
   if(p.id !== meId) return;
   snap(); let from = selected.area; arr.splice(selected.index, 1);
   if(to === "deck") p.areas.deck.push(c); else p.areas[to].push(c);
-  log(`${who(p.id)}：${names[from]} → ${to === "deck" ? "山札の一番下" : names[to]}（${historyCardText(c, to)}）`);
+  log(`${who(p.id)}：${names[from]} → ${to === "deck" ? "山札の下" : names[to]}（${historyCardText(c, to)}）`);
   selected = null; save(); render();
 }
 
