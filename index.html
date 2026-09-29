@@ -37,7 +37,7 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
 .empty{font-size:11px;color:#aaa}.count-small{font-size:11px;color:#555}
 .discard-list{width:100%;height:100%;overflow-y:auto;display:flex;flex-direction:column;align-items:center;gap:3px;padding:1px}
 .discard-item{position:relative;width:100%;min-height:28px;border:1px solid #777;border-radius:4px;background:#fff;padding:3px 4px;font-size:10px;line-height:1.15;word-break:break-word;cursor:pointer;display:flex;align-items:center;overflow:visible}
-.discard-item.selected{outline:2px solid #f09a24}.discard-item.back{background:#777;color:transparent}.discard-item.mode-knownBack{background:#777;color:#fff}
+.discard-item.selected{outline:2px solid #f09a24}.discard-item.back{background:#777;color:transparent}.discard-item.mode-normal{background:#fff;color:#222}.discard-item.mode-knownBack{background:#777;color:#fff}
 
 /* カード移動時の光演出アニメーション（枠線グロー・上品なゴールド） */
 .card.moved-highlight, .discard-item.moved-highlight {
@@ -95,8 +95,16 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
 <div class="panel">
 <h2>自分のデッキ（20枚）</h2>
 <p class="note">1行につき1枚。カード名を入力してください。</p>
+<div class="row" style="margin-bottom:8px">
+  <select id="savedDecksSelect" style="flex:1;min-width:0"></select>
+  <button id="loadDeckBtn" class="secondary">呼出</button>
+  <button id="deleteDeckBtn" class="danger">削除</button>
+</div>
 <textarea id="deck" placeholder="1行につき1枚。カード名を入力してください。"></textarea>
-<div id="deckCount" class="count">0 / 20 枚</div>
+<div class="row" style="justify-content:space-between;align-items:center;margin-top:4px">
+  <div id="deckCount" class="count">0 / 20 枚</div>
+  <button id="saveDeckBtn" class="primary" disabled>デッキを保存</button>
+</div>
 </div>
 </div>
 
@@ -191,8 +199,108 @@ let roomNo = "", roomPath = "", meId = "", meSlot = "", state = null, selected =
 const $ = id => document.getElementById(id);
 const uid = () => Math.random().toString(36).slice(2,10);
 
+/* --- デッキ保存・呼び出し機能 --- */
+const STORAGE_KEY = "mushi_saved_decks_v1";
+
+function getSavedDecks(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+  catch(e){ return []; }
+}
+
+function saveSavedDecks(decks){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(decks)); }
+  catch(e){ alert("デッキの保存に失敗しました。"); }
+}
+
+function refreshDeckDropdown(){
+  const decks = getSavedDecks();
+  const select = $("savedDecksSelect");
+  const loadBtn = $("loadDeckBtn");
+  const deleteBtn = $("deleteDeckBtn");
+
+  select.innerHTML = "";
+  if(decks.length === 0){
+    select.innerHTML = '<option value="">（保存済みデッキなし）</option>';
+    select.disabled = true;
+    loadBtn.disabled = true;
+    deleteBtn.disabled = true;
+  } else {
+    select.disabled = false;
+    loadBtn.disabled = false;
+    deleteBtn.disabled = false;
+    decks.forEach((d, idx) => {
+      const opt = document.createElement("option");
+      opt.value = idx;
+      opt.textContent = d.name;
+      select.appendChild(opt);
+    });
+  }
+}
+
 function deckInput(){ return $("deck").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean); }
-$("deck").oninput = () => $("deckCount").textContent = deckInput().length + " / 20 枚";
+
+function updateDeckUI(){
+  const count = deckInput().length;
+  $("deckCount").textContent = count + " / 20 枚";
+  $("saveDeckBtn").disabled = (count !== 20);
+}
+
+$("deck").oninput = updateDeckUI;
+
+$("saveDeckBtn").onclick = () => {
+  const cards = deckInput();
+  if(cards.length !== 20) return;
+
+  let decks = getSavedDecks();
+  const defaultName = "デッキ" + (decks.length + 1);
+  const name = prompt("デッキ名を入力してください：", defaultName);
+  if(name === null) return;
+  const trimmedName = name.trim();
+  if(!trimmedName) return alert("デッキ名を入力してください。");
+
+  const existingIdx = decks.findIndex(d => d.name === trimmedName);
+  if(existingIdx !== -1){
+    if(!confirm(`「${trimmedName}」は既に存在します。上書きしますか？`)) return;
+    decks[existingIdx].cards = cards;
+  } else {
+    if(decks.length >= 50){
+      return alert("保存できるデッキ数の上限（50個）に達しています。不要なデッキを削除してから保存してください。");
+    }
+    decks.push({ name: trimmedName, cards });
+  }
+
+  saveSavedDecks(decks);
+  refreshDeckDropdown();
+  const newIdx = decks.findIndex(d => d.name === trimmedName);
+  if(newIdx !== -1) $("savedDecksSelect").value = newIdx;
+};
+
+$("loadDeckBtn").onclick = () => {
+  const decks = getSavedDecks();
+  const idx = $("savedDecksSelect").value;
+  if(idx === "" || !decks[idx]) return;
+
+  $("deck").value = decks[idx].cards.join("\n");
+  updateDeckUI();
+};
+
+$("deleteDeckBtn").onclick = () => {
+  const decks = getSavedDecks();
+  const idx = $("savedDecksSelect").value;
+  if(idx === "" || !decks[idx]) return;
+
+  const target = decks[idx];
+  if(confirm(`「${target.name}」を削除してもよろしいですか？`)){
+    decks.splice(idx, 1);
+    saveSavedDecks(decks);
+    refreshDeckDropdown();
+  }
+};
+
+// 初期化実行
+refreshDeckDropdown();
+updateDeckUI();
+/* --------------------------------- */
 
 function roomRef() { return ref(db, roomPath); }
 
@@ -374,7 +482,6 @@ function render(){
   if(!state) return;
   normalizeState(state);
   
-  // 移動発生時刻から 0.6秒（600ms）以内の描画であればハイライト対象とする（これで自分の操作・再描画問わず正常発火します）
   let isNewMove = !!(state.lastMovedTime && (Date.now() - state.lastMovedTime < 600));
 
   $("room").textContent = roomNo;
