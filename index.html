@@ -95,14 +95,12 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
 <div class="panel">
 <h2>部屋</h2>
 <p class="note">部屋番号<br><input id="roomNo" type="text" maxlength="20" placeholder="例：1234"></p>
-<p class="note">
-存在しない番号なら部屋を作成し、存在する番号なら入室します。<br>
+<p class="note">存在しない番号なら部屋を作成し、存在する番号なら入室します。<br>
 部屋を作成した側が先攻設定や対戦開始を操作できます。<br>
 ※システム上、ターンの概念はないので履歴表示用です<br>
  その他効果の発動、ダメージ計算、勝敗の判定などは自動処理されません。<br>
  実際のカード対戦と同様に、お互いに確認・対話しながらプレイを進めてください。<br>
-対戦中にページの再読み込みを行うと、部屋から離脱してしまうのでご注意ください。
-</p>
+対戦中にページの再読み込みを行うと、部屋から離脱してしまうのでご注意ください。</p>
 <button id="enter" class="primary">部屋を作る / 入る</button>
 </div>
 <div class="panel">
@@ -112,19 +110,7 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
   <button id="loadDeckBtn" class="secondary">呼出</button>
   <button id="deleteDeckBtn" class="danger">削除</button>
 </div>
-<p class="note">
-リストはありません。1行につき1枚、カード名を入力してください。<br>
-カード名は省略したりステータスを記載してもOKです。<br>
-入力したテキストがそのままカード名として表示されます。<br>
-また、カード名に &lt;赤&gt; &lt;青&gt; &lt;緑&gt; &lt;無&gt; を含めると色をつけることができます。<br>
-例：<br>
-「ゴライアスオオツノハナムグリ」<br>
-「&lt;青&gt;ゴライアス/5/800/500」<br>
-「ゴライアス&lt;青&gt;5/800/500/とびだす」<br>
-<br>
-ただし入力が長すぎると表示が崩れるので注意。
-</p>
-<textarea id="deck" placeholder="1行につき1枚。カード名を入力してください。&#10;例：&#10;ゴライアスオオツノハナムグリ&#10;&lt;青&gt;ゴライアス/5/800/500&#10;ゴライアス&lt;青&gt;5/800/500/とびだす"></textarea>
+<textarea id="deck" placeholder="リストはありません。1行につき1枚、カード名を入力してください。&#10;カード名は省略したりステータスを記載してもOKです。（入力したテキストがそのままカード名として表示されます）&#10;&#10;また、カード名に <赤> <青> <緑> <無> を含めると色をつけることができます。&#10;例：&#10;「ゴライアスオオツノハナムグリ」&#10;「<青>ゴライアス/5/800/500」&#10;「ゴライアス<青>5/800/500/とびだす」&#10;&#10;ただし入力が長すぎると表示が崩れるので注意。"></textarea>
 <div class="row" style="justify-content:space-between;align-items:center;margin-top:4px">
   <div id="deckCount" class="count">0 / 20 枚</div>
   <button id="saveDeckBtn" class="primary" disabled>デッキを保存</button>
@@ -144,7 +130,6 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
 <ul class="note">
 <li><b>デッキ自動セットアップ:</b> 20枚のデッキリストを入力するだけで、シャッフル・手札(4枚)・縄張り(6枚)・山札(10枚)を自動配置</li>
 <li><b>カードの直感操作:</b> 各エリア（手札・場・エサ場・縄張り・捨て札・山札）への移動、表裏の切り替え</li>
-<li><b>リアルタイム同期:</b> 相手のカード操作や盤面の状態がリアルタイムに反映</li>
 <li><b>対戦サポート:</b> 操作履歴の表示、「一手戻す」機能、対戦中チャット</li>
 <li><b>スムーズな再戦:</b> 同じデッキのままワンクリックで盤面をリセットして再戦可能</li>
 </ul>
@@ -161,9 +146,9 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
 <li>お互いがほぼ同時に一手戻す操作をするとバグるかも？未確認ですが一応注意。</li>
 <li>＜とびだす＞などの判定も出来ないので、一度手札に加えてから盤面に出すなどの処理となります。元々手札にあったカードを偽って出すなども可能ですが、信頼の上でのプレイを前提としてください。</li>
 <li>その他不正対策なども実装されていません。</li>
-<li>一部特殊な挙動に関しては対応できていません。アドリブで対応してください。<br>※「エメラルドゴキブリバチ」の"操り針"くらい？ 他にあったら教えて下さい。</li>
+<li>一部特殊な挙動に関しては対応できていません。アドリブで対応してください。※「エメラルドゴキブリバチ」の"操り針"くらい？ 他にあったら教えて下さい。</li>
 <li>異なるブラウザを使用すれば同一PCでの一人回しも可能です。</li>
-<li>バグ報告や問い合わせ、ご意見などは作者（<a href="https://x.com/AttoSuzu" target="_blank" rel="noopener">https://x.com/AttoSuzu</a>）に連絡ください。</li>
+<li>バグ報告や問い合わせ、ご意見などは作者（<a href="https://x.com/＊＊＊" target="_blank" rel="noopener">https://x.com/＊＊＊</a>）に連絡ください。</li>
 </ul>
 </div>
 </div>
