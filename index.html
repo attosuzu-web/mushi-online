@@ -39,7 +39,7 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
 .discard-item{position:relative;width:100%;min-height:28px;border:1px solid #777;border-radius:4px;background:#fff;padding:3px 4px;font-size:10px;line-height:1.15;word-break:break-word;cursor:pointer;display:flex;align-items:center;overflow:visible}
 .discard-item.selected{outline:2px solid #f09a24}.discard-item.back{background:#777;color:transparent}.discard-item.mode-knownBack{background:#777;color:#fff}
 
-/* カード移動時の光演出アニメーション（中心から拡大して縮小） */
+/* カード移動時の光演出アニメーション（0.5秒、サイズ縮小） */
 .card.moved-highlight::after, .discard-item.moved-highlight::after {
   content: "";
   position: absolute;
@@ -51,7 +51,7 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
   background: radial-gradient(circle, #ffffff 0%, #ffe600 50%, rgba(255, 230, 0, 0) 75%);
   pointer-events: none;
   z-index: 30;
-  animation: lightGlow 1.5s ease-in-out forwards;
+  animation: lightGlow 0.5s ease-in-out forwards;
 }
 
 @keyframes lightGlow {
@@ -60,7 +60,7 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
     opacity: 0.2;
   }
   50% {
-    transform: translate(-50%, -50%) scale(2.2);
+    transform: translate(-50%, -50%) scale(1.1);
     opacity: 0.95;
   }
   100% {
@@ -71,7 +71,7 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
 
 .opponent-board{transform:rotate(180deg)}.opponent-board .zone-title,.opponent-board .card,.opponent-board .empty,.opponent-board .discard-item{transform:rotate(180deg)}
 
-/* 右側パネル（対戦情報の高さを100pxへ拡張） */
+/* 右側パネル */
 .side{min-height:0;display:grid;grid-template-rows:100px minmax(0,1fr) 250px;gap:6px}
 .side-info,.side-box{background:#fff;border:1px solid #c7ced5;border-radius:8px;padding:8px;min-height:0;overflow:hidden}.side-info{display:flex;align-items:center;justify-content:space-between;gap:8px}.info-left{min-width:0}.info-left .note{white-space:nowrap}
 .badge{border:1px solid #c7ced5;border-radius:999px;padding:3px 8px;background:#fff;font-size:11px}.badge.me{border-color:#2463eb;background:#eff6ff;color:#1d4ed8;font-weight:700}.turn{padding:6px 8px;border:1px solid #c7ced5;border-radius:7px;background:#f5f7f9;font-weight:700;font-size:12px;white-space:nowrap}
@@ -196,6 +196,7 @@ const areas = ["hand","deck","field","food","territory","discard"];
 const names = {hand:"手札",deck:"山札",field:"場",food:"エサ場",territory:"縄張り",discard:"捨て札"};
 
 let roomNo = "", roomPath = "", meId = "", meSlot = "", state = null, selected = null, unsubscribe = null;
+let lastHandledMoveTime = 0; // アニメーション重複発火防止用フラグ
 
 const $ = id => document.getElementById(id);
 const uid = () => Math.random().toString(36).slice(2,10);
@@ -271,6 +272,7 @@ function startGame(){
   state.first = choice === "random" ? state.players[Math.floor(Math.random()*2)].slot : choice;
   state.started = true;
   state.lastMovedId = null;
+  state.lastMovedTime = null;
   state.history = [];
   state.history.push({ t: Date.now(), type: "start", first: state.first, text: "対戦を開始しました" });
   selected = null;
@@ -284,9 +286,9 @@ function cardMode(c, owner, area){
   return c.faceUp ? "normal" : (c.knownName ? "knownBack" : "back");
 }
 
-function makeCard(c, owner, area, index){
+function makeCard(c, owner, area, index, isNewMove){
   let mode = cardMode(c, owner, area), b = document.createElement("button");
-  let isHighlight = (state && state.lastMovedId === c.id);
+  let isHighlight = (isNewMove && state && state.lastMovedId === c.id);
   b.className = "card " + area + "-card mode-" + mode + " " + (mode === "back" ? "back " : "") + (mode === "knownBack" ? "known-back " : "") + (selected && selected.owner === owner && selected.area === area && selected.index === index ? "selected " : "") + (isHighlight ? "moved-highlight" : "");
   b.textContent = (mode === "normal" || mode === "knownBack") ? c.name : "";
   b.title = (mode === "normal" || mode === "knownBack") ? c.name : "裏向き";
@@ -299,7 +301,7 @@ function makeCard(c, owner, area, index){
   return b;
 }
 
-function drawZone(owner, area){
+function drawZone(owner, area, isNewMove){
   let p = state.players.find(x => x.id === owner), z = document.createElement("div");
   z.className = "zone zone-" + area;
   let title = document.createElement("div");
@@ -321,7 +323,7 @@ function drawZone(owner, area){
     let list = document.createElement("div"); list.className = "discard-list";
     listArr.forEach((c, i) => {
       let b = document.createElement("button"), mode = c.faceUp ? "normal" : (c.knownName ? "knownBack" : "back");
-      let isHighlight = (state && state.lastMovedId === c.id);
+      let isHighlight = (isNewMove && state && state.lastMovedId === c.id);
       b.className = "discard-item mode-" + mode + " " + (mode === "back" ? "back " : "") + (mode === "knownBack" ? "known-back " : "") + (selected && selected.owner === owner && selected.area === area && selected.index === i ? "selected " : "") + (isHighlight ? "moved-highlight" : "");
       b.textContent = (mode === "normal" || mode === "knownBack") ? c.name : "";
       b.title = (mode === "normal" || mode === "knownBack") ? c.name : "裏向き";
@@ -335,7 +337,7 @@ function drawZone(owner, area){
     if(listArr.length){
       let wrap = document.createElement("div"); wrap.className = "deck-controls";
       let topCard = listArr[0];
-      let isHighlight = (state && state.lastMovedId === topCard.id);
+      let isHighlight = (isNewMove && state && state.lastMovedId === topCard.id);
       let x = document.createElement("button");
       x.className = "card deck-card back " + (selected && selected.owner === owner && selected.area === "deck" && selected.index === 0 ? "selected " : "") + (isHighlight ? "moved-highlight" : "");
       x.title = "山札の一番上";
@@ -349,14 +351,14 @@ function drawZone(owner, area){
       cs.appendChild(wrap);
     } else { let e = document.createElement("span"); e.className = "empty"; e.textContent = "空"; cs.appendChild(e); }
   } else if(area === "territory"){
-    listArr.forEach((c, i) => cs.appendChild(makeCard(c, owner, area, i)));
+    listArr.forEach((c, i) => cs.appendChild(makeCard(c, owner, area, i, isNewMove)));
     if(!listArr.length){ let e = document.createElement("span"); e.className = "empty"; e.textContent = "空"; cs.appendChild(e); }
     if(owner === meId && listArr.length){
       let draw = document.createElement("button"); draw.className = "zone-action"; draw.textContent = "縄張りを引く"; draw.onclick = () => drawTerritory();
       cs.appendChild(draw);
     }
   } else {
-    listArr.forEach((c, i) => cs.appendChild(makeCard(c, owner, area, i)));
+    listArr.forEach((c, i) => cs.appendChild(makeCard(c, owner, area, i, isNewMove)));
     if(!listArr.length){ let e = document.createElement("span"); e.className = "empty"; e.textContent = "空"; cs.appendChild(e); }
   }
   z.appendChild(cs);
@@ -369,10 +371,10 @@ function drawZone(owner, area){
   return z;
 }
 
-function playerBoard(owner){
+function playerBoard(owner, isNewMove){
   let box = document.createElement("section");
   box.className = "player-board " + (owner === meId ? "your-board" : "opponent-board");
-  areas.forEach(a => box.appendChild(drawZone(owner, a)));
+  areas.forEach(a => box.appendChild(drawZone(owner, a, isNewMove)));
   return box;
 }
 
@@ -382,6 +384,9 @@ function render(){
   if(!state) return;
   normalizeState(state);
   
+  // 新しい移動イベントが発生しているかチェック
+  let isNewMove = !!(state.lastMovedTime && state.lastMovedTime > lastHandledMoveTime);
+
   $("room").textContent = roomNo;
   $("players").innerHTML = state.players.map(p => `<span class="badge ${p.id === meId ? "me" : ""}">${p.id === meId ? "あなた" : "相手"}</span>`).join("");
   let fp = state.players.find(p => p.slot === state.first);
@@ -390,7 +395,7 @@ function render(){
   $("startBtn").disabled = state.players.length < 2 || state.started || meSlot !== "p1";
   
   let board = $("board"); board.innerHTML = "";
-  state.players.slice().sort((a,b) => (a.id === meId ? 1 : 0) - (b.id === meId ? 1 : 0)).forEach(p => board.appendChild(playerBoard(p.id)));
+  state.players.slice().sort((a,b) => (a.id === meId ? 1 : 0) - (b.id === meId ? 1 : 0)).forEach(p => board.appendChild(playerBoard(p.id, isNewMove)));
 
   let c = selected ? state.players.find(p => p.id === selected.owner)?.areas?.[selected.area]?.[selected.index] : null;
   $("selectedText").textContent = c ? `${names[selected.area]} / ${selected.area === "deck" ? "山札の一番上" : c.name}${c.faceUp ? "（表）" : "（裏）"}` : "なし";
@@ -402,6 +407,11 @@ function render(){
   }).join("");
 
   $("chat").innerHTML = (state.chat || []).slice(-80).map(x => `<div><b>${x.slot === meSlot ? "あなた" : "相手"}：</b>${x.text}</div>`).join("");
+
+  // 移動アニメーション処理が完了したらフラグを更新（再描画時のアニメーション重複を防ぐ）
+  if(isNewMove) {
+    lastHandledMoveTime = state.lastMovedTime;
+  }
 }
 
 function drawTopToHand(){
@@ -409,6 +419,7 @@ function drawTopToHand(){
   let p = state.players.find(x => x.id === meId); if(!p || !p.areas.deck.length) return;
   snap(); let c = p.areas.deck.shift(); p.areas.hand.push(c);
   state.lastMovedId = c.id;
+  state.lastMovedTime = Date.now();
   log(`山札 → 手札（非公開カード）`); selected = null; save(); render();
 }
 
@@ -417,6 +428,7 @@ function drawTerritory(){
   let p = state.players.find(x => x.id === meId); if(!p || !p.areas.territory.length) return;
   snap(); let c = p.areas.territory.shift(); p.areas.hand.push(c);
   state.lastMovedId = c.id;
+  state.lastMovedTime = Date.now();
   log(`縄張り → 手札（非公開カード）`); selected = null; save(); render();
 }
 
@@ -432,6 +444,7 @@ function move(to){
   snap(); let from = selected.area; arr.splice(selected.index, 1);
   if(to === "deck") p.areas.deck.push(c); else p.areas[to].push(c);
   state.lastMovedId = c.id;
+  state.lastMovedTime = Date.now();
   log(`${names[from]} → ${to === "deck" ? "山札の一番下" : names[to]}（${historyCardText(c, to)}）`);
   selected = null; save(); render();
 }
@@ -488,7 +501,7 @@ $("chatInput").onkeydown = e => { if(e.key === "Enter") send(); };
 $("rematch").onclick = () => {
   if(!state || !state.started) return;
   if(!confirm("現在のデッキで再戦しますか？")) return;
-  snap(); state.started = false; state.first = null; state.lastMovedId = null; state.players.forEach(p => p.areas = null); state.history = []; save(); render();
+  snap(); state.started = false; state.first = null; state.lastMovedId = null; state.lastMovedTime = null; state.players.forEach(p => p.areas = null); state.history = []; save(); render();
 };
 
 $("end").onclick = async () => {
@@ -520,6 +533,7 @@ $("enter").onclick = async () => {
           firstChoice: "random",
           first: null,
           lastMovedId: null,
+          lastMovedTime: null,
           undoStack: [],
           updatedAt: Date.now()
         };
