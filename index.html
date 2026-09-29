@@ -27,8 +27,14 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
 
 /* カードおよびボタンサイズ */
 .card{position:relative;width:clamp(52px, 5.2vw, 68px);height:clamp(80px, 8vw, 102px);border:1px solid #555;border-radius:5px;background:#fff;padding:4px 2px;font-size:clamp(10px, 1.1vw, 12px);font-weight:500;line-height:1.2;text-align:center;word-break:break-word;overflow:visible;display:flex;align-items:center;justify-content:center}
-.card.back{background:#777;color:transparent}.card.known-back{background:#777;color:#fff}.card.mode-normal{background:#fff;color:#222}.card.mode-knownBack{background:#777;color:#fff}
+.card.back{background:#777!important;color:transparent!important}.card.known-back{background:#777!important;color:#fff!important}.card.mode-normal{background:#fff;color:#222}.card.mode-knownBack{background:#777!important;color:#fff!important}
 .deck-controls{display:flex;flex-direction:column;align-items:center;gap:5px}
+
+/* 色指定CSS（表向き時のみ適用） */
+.card.mode-normal.color-red, .discard-item.mode-normal.color-red { background: #ffebee; color: #222; }
+.card.mode-normal.color-blue, .discard-item.mode-normal.color-blue { background: #e3f2fd; color: #222; }
+.card.mode-normal.color-green, .discard-item.mode-normal.color-green { background: #e8f5e9; color: #222; }
+.card.mode-normal.color-none, .discard-item.mode-normal.color-none { background: #eceff1; color: #222; }
 
 .zone-action{border:1px solid #2463eb;background:#eef4ff;color:#1d4ed8;border-radius:6px;padding:4px;font-size:11px;font-weight:700;width:52px;height:40px;line-height:1.2;display:flex;align-items:center;justify-content:center;text-align:center}
 .zone-action:hover{background:#dbe8ff}.zone-action:disabled{background:#d7dbe0;color:#8a9096;border-color:#b9bec4}
@@ -37,7 +43,7 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
 .empty{font-size:11px;color:#aaa}.count-small{font-size:11px;color:#555}
 .discard-list{width:100%;height:100%;overflow-y:auto;display:flex;flex-direction:column;align-items:center;gap:3px;padding:1px}
 .discard-item{position:relative;width:100%;min-height:28px;border:1px solid #777;border-radius:4px;background:#fff;padding:3px 4px;font-size:10px;line-height:1.15;word-break:break-word;cursor:pointer;display:flex;align-items:center;overflow:visible}
-.discard-item.selected{outline:2px solid #f09a24}.discard-item.back{background:#777;color:transparent}.discard-item.mode-normal{background:#fff;color:#222}.discard-item.mode-knownBack{background:#777;color:#fff}
+.discard-item.selected{outline:2px solid #f09a24}.discard-item.back{background:#777!important;color:transparent!important}.discard-item.mode-normal{background:#fff;color:#222}.discard-item.mode-knownBack{background:#777!important;color:#fff!important}
 
 /* カード移動時の光演出アニメーション（枠線グロー・上品なゴールド） */
 .card.moved-highlight, .discard-item.moved-highlight {
@@ -94,13 +100,13 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
 </div>
 <div class="panel">
 <h2>自分のデッキ（20枚）</h2>
-<p class="note">1行につき1枚。カード名を入力してください。</p>
+<p class="note">1行につき1枚、カード名を入力してください。<br>※カード名に &lt;赤&gt; &lt;青&gt; &lt;緑&gt; &lt;無&gt; を含めると色をつけることができます。（例：カブトムシ/&lt;青&gt;/4/800）</p>
 <div class="row" style="margin-bottom:8px">
   <select id="savedDecksSelect" style="flex:1;min-width:0"></select>
   <button id="loadDeckBtn" class="secondary">呼出</button>
   <button id="deleteDeckBtn" class="danger">削除</button>
 </div>
-<textarea id="deck" placeholder="1行につき1枚。カード名を入力してください。"></textarea>
+<textarea id="deck" placeholder="1行につき1枚。カード名を入力してください。&#10;例：&#10;カブトムシ/&lt;青&gt;/4/800&#10;&lt;赤&gt;オニヤンマ&#10;ミツバチ/&lt;緑&gt;"></textarea>
 <div class="row" style="justify-content:space-between;align-items:center;margin-top:4px">
   <div id="deckCount" class="count">0 / 20 枚</div>
   <button id="saveDeckBtn" class="primary" disabled>デッキを保存</button>
@@ -135,7 +141,7 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
 <h2>■ 注意事項・プレイングのルール</h2>
 <ul class="note">
 <li><b>【ルール判定はありません】</b> 効果の発動、ダメージ計算、勝敗の判定などは自動処理されません。実際のカード対戦と同様に、お互いに確認・対話しながらプレイを進めてください。</li>
-<li><b>【デッキ入力】</b> カードリストなどはありません。入力したテキストがそのままカード名として表示されます。（お互いがカードを一意に認識できればいいので省略も可。「ゴライアス5/800/500」のような記載もOKです。ただし長すぎると表示が崩れるので注意）</li>
+<li><b>【デッキ入力】</b> カードリストなどはありません。入力したテキストがそのままカード名として表示されます。（お互いがカードを一意に認識できればいいので省略も可。「ゴライアス/&lt;青&gt;/5/800/500」のように属性指定もOKです。ただし長すぎると表示が崩れるので注意）</li>
 <li><b>【ページ更新の注意】</b> 対戦中にページの再読み込み（F5キー等）を行うと、部屋から離脱してしまう場合がありますのでご注意ください。</li>
 <li><b>【非公式ツール】</b> 本ツールはファンが作成した非公式ツールです。公式とは一切関係ありません。</li>
 </ul>
@@ -198,6 +204,36 @@ let roomNo = "", roomPath = "", meId = "", meSlot = "", state = null, selected =
 
 const $ = id => document.getElementById(id);
 const uid = () => Math.random().toString(36).slice(2,10);
+
+/* --- カードの色情報と表示名解析処理 --- */
+function parseCardInfo(c){
+  if(!c || !c.name) return { displayName: "", colorClass: "" };
+  let rawName = c.name;
+  const tagMap = [
+    { tag: "<赤>", color: "red" },
+    { tag: "<青>", color: "blue" },
+    { tag: "<緑>", color: "green" },
+    { tag: "<無>", color: "none" }
+  ];
+
+  let firstMatch = null;
+  let firstIndex = Infinity;
+
+  tagMap.forEach(item => {
+    let idx = rawName.indexOf(item.tag);
+    if(idx !== -1 && idx < firstIndex){
+      firstIndex = idx;
+      firstMatch = item;
+    }
+  });
+
+  if(firstMatch){
+    let displayName = rawName.replace(/<(赤|青|緑|無)>/g, "");
+    return { displayName, colorClass: "color-" + firstMatch.color };
+  } else {
+    return { displayName: rawName, colorClass: "" };
+  }
+}
 
 /* --- デッキ保存・呼び出し機能 --- */
 const STORAGE_KEY = "mushi_saved_decks_v1";
@@ -387,9 +423,12 @@ function cardMode(c, owner, area){
 function makeCard(c, owner, area, index, isNewMove){
   let mode = cardMode(c, owner, area), b = document.createElement("button");
   let isHighlight = (isNewMove && state && state.lastMovedId === c.id);
-  b.className = "card " + area + "-card mode-" + mode + " " + (mode === "back" ? "back " : "") + (mode === "knownBack" ? "known-back " : "") + (selected && selected.owner === owner && selected.area === area && selected.index === index ? "selected " : "") + (isHighlight ? "moved-highlight" : "");
-  b.textContent = (mode === "normal" || mode === "knownBack") ? c.name : "";
-  b.title = (mode === "normal" || mode === "knownBack") ? c.name : "裏向き";
+  let info = parseCardInfo(c);
+  let colorCls = (mode === "normal" || mode === "knownBack") ? info.colorClass : "";
+
+  b.className = "card " + area + "-card mode-" + mode + " " + (mode === "back" ? "back " : "") + (mode === "knownBack" ? "known-back " : "") + (selected && selected.owner === owner && selected.area === area && selected.index === index ? "selected " : "") + (isHighlight ? "moved-highlight " : "") + colorCls;
+  b.textContent = (mode === "normal" || mode === "knownBack") ? info.displayName : "";
+  b.title = (mode === "normal" || mode === "knownBack") ? info.displayName : "裏向き";
   if(owner !== meId){
     b.disabled = true;
     b.classList.remove("selected");
@@ -422,9 +461,12 @@ function drawZone(owner, area, isNewMove){
     listArr.forEach((c, i) => {
       let b = document.createElement("button"), mode = c.faceUp ? "normal" : (c.knownName ? "knownBack" : "back");
       let isHighlight = (isNewMove && state && state.lastMovedId === c.id);
-      b.className = "discard-item mode-" + mode + " " + (mode === "back" ? "back " : "") + (mode === "knownBack" ? "known-back " : "") + (selected && selected.owner === owner && selected.area === area && selected.index === i ? "selected " : "") + (isHighlight ? "moved-highlight" : "");
-      b.textContent = (mode === "normal" || mode === "knownBack") ? c.name : "";
-      b.title = (mode === "normal" || mode === "knownBack") ? c.name : "裏向き";
+      let info = parseCardInfo(c);
+      let colorCls = (mode === "normal" || mode === "knownBack") ? info.colorClass : "";
+
+      b.className = "discard-item mode-" + mode + " " + (mode === "back" ? "back " : "") + (mode === "knownBack" ? "known-back " : "") + (selected && selected.owner === owner && selected.area === area && selected.index === i ? "selected " : "") + (isHighlight ? "moved-highlight " : "") + colorCls;
+      b.textContent = (mode === "normal" || mode === "knownBack") ? info.displayName : "";
+      b.title = (mode === "normal" || mode === "knownBack") ? info.displayName : "裏向き";
       if(owner === meId) b.onclick = () => { selected = { owner, area: "discard", index: i }; render(); };
       else b.disabled = true;
       list.appendChild(b);
@@ -476,7 +518,7 @@ function playerBoard(owner, isNewMove){
   return box;
 }
 
-function historyCardText(card, to){ return ["field","food","discard"].includes(to) && card.faceUp ? card.name : "非公開カード"; }
+function historyCardText(card, to){ return ["field","food","discard"].includes(to) && card.faceUp ? parseCardInfo(card).displayName : "非公開カード"; }
 
 function render(){
   if(!state) return;
@@ -495,7 +537,8 @@ function render(){
   state.players.slice().sort((a,b) => (a.id === meId ? 1 : 0) - (b.id === meId ? 1 : 0)).forEach(p => board.appendChild(playerBoard(p.id, isNewMove)));
 
   let c = selected ? state.players.find(p => p.id === selected.owner)?.areas?.[selected.area]?.[selected.index] : null;
-  $("selectedText").textContent = c ? `${names[selected.area]} / ${selected.area === "deck" ? "山札の一番上" : c.name}${c.faceUp ? "（表）" : "（裏）"}` : "なし";
+  let cInfo = c ? parseCardInfo(c) : null;
+  $("selectedText").textContent = c ? `${names[selected.area]} / ${selected.area === "deck" ? "山札の一番上" : cInfo.displayName}${c.faceUp ? "（表）" : "（裏）"}` : "なし";
 
   $("history").innerHTML = (state.history || []).slice().reverse().map(h => {
     let actorName = h.actor ? (h.actor === meId ? "あなた" : "相手") : "";
