@@ -39,33 +39,24 @@ textarea{width:100%;height:270px;padding:10px;border:1px solid #aeb7c0;border-ra
 .discard-item{position:relative;width:100%;min-height:28px;border:1px solid #777;border-radius:4px;background:#fff;padding:3px 4px;font-size:10px;line-height:1.15;word-break:break-word;cursor:pointer;display:flex;align-items:center;overflow:visible}
 .discard-item.selected{outline:2px solid #f09a24}.discard-item.back{background:#777;color:transparent}.discard-item.mode-knownBack{background:#777;color:#fff}
 
-/* カード移動時の光演出アニメーション（0.5秒、サイズ縮小） */
-.card.moved-highlight::after, .discard-item.moved-highlight::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: radial-gradient(circle, #ffffff 0%, #ffe600 50%, rgba(255, 230, 0, 0) 75%);
-  pointer-events: none;
-  z-index: 30;
-  animation: lightGlow 0.5s ease-in-out forwards;
+/* カード移動時の光演出アニメーション（枠線グロー・上品なゴールド） */
+.card.moved-highlight, .discard-item.moved-highlight {
+  animation: borderGlow 0.5s ease-out forwards;
+  z-index: 10;
 }
 
-@keyframes lightGlow {
+@keyframes borderGlow {
   0% {
-    transform: translate(-50%, -50%) scale(0);
-    opacity: 0.2;
+    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+    border-color: #555;
   }
-  50% {
-    transform: translate(-50%, -50%) scale(1.1);
-    opacity: 0.95;
+  35% {
+    box-shadow: 0 0 10px 3px rgba(255, 215, 0, 0.85), inset 0 0 6px rgba(255, 215, 0, 0.5);
+    border-color: #ffd700;
   }
   100% {
-    transform: translate(-50%, -50%) scale(0);
-    opacity: 0;
+    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+    border-color: #555;
   }
 }
 
@@ -196,7 +187,6 @@ const areas = ["hand","deck","field","food","territory","discard"];
 const names = {hand:"手札",deck:"山札",field:"場",food:"エサ場",territory:"縄張り",discard:"捨て札"};
 
 let roomNo = "", roomPath = "", meId = "", meSlot = "", state = null, selected = null, unsubscribe = null;
-let lastHandledMoveTime = 0; // アニメーション重複発火防止用フラグ
 
 const $ = id => document.getElementById(id);
 const uid = () => Math.random().toString(36).slice(2,10);
@@ -384,8 +374,8 @@ function render(){
   if(!state) return;
   normalizeState(state);
   
-  // 新しい移動イベントが発生しているかチェック
-  let isNewMove = !!(state.lastMovedTime && state.lastMovedTime > lastHandledMoveTime);
+  // 移動発生時刻から 0.6秒（600ms）以内の描画であればハイライト対象とする（これで自分の操作・再描画問わず正常発火します）
+  let isNewMove = !!(state.lastMovedTime && (Date.now() - state.lastMovedTime < 600));
 
   $("room").textContent = roomNo;
   $("players").innerHTML = state.players.map(p => `<span class="badge ${p.id === meId ? "me" : ""}">${p.id === meId ? "あなた" : "相手"}</span>`).join("");
@@ -407,11 +397,6 @@ function render(){
   }).join("");
 
   $("chat").innerHTML = (state.chat || []).slice(-80).map(x => `<div><b>${x.slot === meSlot ? "あなた" : "相手"}：</b>${x.text}</div>`).join("");
-
-  // 移動アニメーション処理が完了したらフラグを更新（再描画時のアニメーション重複を防ぐ）
-  if(isNewMove) {
-    lastHandledMoveTime = state.lastMovedTime;
-  }
 }
 
 function drawTopToHand(){
@@ -476,7 +461,7 @@ $("firstOk").onclick = () => {
 };
 $("startBtn").onclick = () => { if(state.players.length < 2) return; startGame(); render(); };
 
-/* Undo（チャットを消さずに最新を保持） */
+/* Undo */
 $("undo").onclick = () => {
   if(!state.undoStack || !state.undoStack.length){ alert("戻せる操作がありません。"); return; }
   let currentChat = state.chat || [];
